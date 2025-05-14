@@ -1,0 +1,14 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 23798,
+            "driver": "PostgreSQL",
+            "name": "sqd-test",
+            "database": "squid",
+            "username": "postgres",
+            "password": "postgres"
+        }
+    ]
+}
