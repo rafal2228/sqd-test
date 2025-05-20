@@ -1,7 +1,7 @@
 import { EvmBatchProcessor } from "@subsquid/evm-processor";
 import { TypeormDatabase } from "@subsquid/typeorm-store";
-import * as usdtAbi from "./abi/usdt";
-import { Transfer } from "./model";
+import * as depositAbi from "./abi/depositContract";
+import { Deposit } from "./model";
 
 const processor = new EvmBatchProcessor()
   .setGateway("https://v2.archive.subsquid.io/network/ethereum-mainnet")
@@ -10,27 +10,45 @@ const processor = new EvmBatchProcessor()
     rateLimit: 10,
   })
   .setFinalityConfirmation(75) // 15 mins to finality
+  .setBlockRange({
+    from: 21881391,
+  })
   .addLog({
-    address: ["0xdAC17F958D2ee523a2206206994597C13D831ec7"],
-    topic0: [usdtAbi.events.Transfer.topic],
+    address: ["0x00000000219ab540356cbb839cbe05303d7705fa"],
+    topic0: [depositAbi.events.DepositEvent.topic],
+    transaction: true,
   });
 
 const db = new TypeormDatabase();
 
 processor.run(db, async (ctx) => {
-  const transfers: Transfer[] = [];
+  const deposits: Deposit[] = [];
+
   for (let block of ctx.blocks) {
     for (let log of block.logs) {
-      let { from, to, value } = usdtAbi.events.Transfer.decode(log);
-      transfers.push(
-        new Transfer({
+      const transaction = log.getTransaction();
+
+      let {
+        pubkey,
+        withdrawal_credentials: withdrawalCredentials,
+        amount,
+        signature,
+        index,
+      } = depositAbi.events.DepositEvent.decode(log);
+
+      deposits.push(
+        new Deposit({
           id: log.id,
-          from,
-          to,
-          value,
+          pubkey,
+          withdrawalCredentials,
+          amount: BigInt(amount),
+          signature,
+          index,
+          transactionHash: transaction.hash,
         }),
       );
     }
   }
-  await ctx.store.insert(transfers);
+
+  await ctx.store.insert(deposits);
 });

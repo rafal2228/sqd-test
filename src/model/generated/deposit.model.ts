@@ -1,8 +1,8 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, BigIntColumn as BigIntColumn_} from "@subsquid/typeorm-store"
 
 @Entity_()
-export class Transfer {
-    constructor(props?: Partial<Transfer>) {
+export class Deposit {
+    constructor(props?: Partial<Deposit>) {
         Object.assign(this, props)
     }
 
@@ -11,12 +11,21 @@ export class Transfer {
 
     @Index_()
     @StringColumn_({nullable: false})
-    from!: string
+    pubkey!: string
 
     @Index_()
     @StringColumn_({nullable: false})
-    to!: string
+    withdrawalCredentials!: string
 
     @BigIntColumn_({nullable: false})
-    value!: bigint
+    amount!: bigint
+
+    @StringColumn_({nullable: false})
+    signature!: string
+
+    @StringColumn_({nullable: false})
+    index!: string
+
+    @StringColumn_({nullable: true})
+    transactionHash!: string | undefined | null
 }

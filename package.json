@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "typeorm:codegen": "squid-typeorm-codegen",
+    "tsc": "tsc",
+    "migration:generate": "squid-typeorm-migration generate",
+    "migration:apply": "squid-typeorm-migration apply",
+    "evm-typegen": "squid-evm-typegen src/abi ./abi/*",
+    "start": "node -r dotenv/config lib/main.js"
   },
   "keywords": [],
   "author": "",

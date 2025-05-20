@@ -1,6 +1,9 @@
-type Transfer @entity {
+type Deposit @entity {
   id: ID!
-  from: String! @index
-  to: String! @index
-  value: BigInt!
+  pubkey: String! @index
+  withdrawalCredentials: String! @index
+  amount: BigInt!
+  signature: String!
+  index: String!
+  transactionHash: String
 }
