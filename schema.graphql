@@ -1,11 +1,22 @@
-type Transaction @entity {
+type Trace @entity {
+  id: ID!
+  from: String! @index
+  to: String! @index
+  input: String!
+  value: BigInt
+  historyEntry: HistoryEntry!
+}
+
+type HistoryEntry @entity {
   id: ID!
   hash: String!
   from: String! @index
   to: String! @index
   input: String!
   value: BigInt
+  sender: String! @index
   blockNumber: BigInt!
   blockHash: String!
   blockTimestamp: BigInt!
+  traces: [Trace!] @derivedFrom(field: "historyEntry")
 }

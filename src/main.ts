@@ -1,6 +1,6 @@
 import { EvmBatchProcessor } from "@subsquid/evm-processor";
 import { TypeormDatabase } from "@subsquid/typeorm-store";
-import { Transaction } from "./model";
+import { HistoryEntry, Trace } from "./model";
 import { z } from "zod";
 import * as beaconDeposit from "./abi/BeaconDeposit";
 import * as ethDepositor from "./abi/ETHDepositor";
@@ -45,83 +45,100 @@ const processor = new EvmBatchProcessor()
   })
   .setFinalityConfirmation(75) // 15 mins to finality
   .setFields({
+    trace: {
+      callFrom: true,
+      callTo: true,
+      callInput: true,
+      callValue: true,
+      callSighash: true,
+    },
     transaction: {
       hash: true,
       from: true,
       to: true,
       input: true,
       value: true,
+      sighash: true,
     },
   })
   // Native deposits - top ups
-  .addTransaction({
-    to: [env.BEACON_DEPOSIT__CONTRACT_ADDRESS],
-    sighash: [beaconDeposit.functions.deposit.sighash],
+  .addTrace({
+    callTo: [env.BEACON_DEPOSIT__CONTRACT_ADDRESS],
+    callSighash: [beaconDeposit.functions.deposit.sighash],
     range: {
       from: env.BEACON_DEPOSIT__START_BLOCK,
     },
+    transaction: true,
   })
   // Native withdrawals - partial/full
-  .addTransaction({
-    to: [env.PARTIAL_WITHDRAWAL__CONTRACT_ADDRESS],
+  .addTrace({
+    callTo: [env.PARTIAL_WITHDRAWAL__CONTRACT_ADDRESS],
     range: {
       from: env.PARTIAL_WITHDRAWAL__START_BLOCK,
     },
+    transaction: true,
   })
   // Native validators consolidations - upgrade/consolidation
-  .addTransaction({
-    to: [env.CONSOLIDATE_VALIDATORS__CONTRACT_ADDRESS],
+  .addTrace({
+    callTo: [env.CONSOLIDATE_VALIDATORS__CONTRACT_ADDRESS],
     range: {
       from: env.CONSOLIDATE_VALIDATORS__START_BLOCK,
     },
+    transaction: true,
   })
   // Direct deposits - unlimited
-  .addTransaction({
-    to: [env.DIRECT_DEPOSIT_UNLIMITED__P2P_ORG_UNLIMITED_ETH_DEPOSITOR__CONTRACT_ADDRESS],
-    sighash: [unlimitedETHDepositor.functions.addEth.sighash],
+  .addTrace({
+    callTo: [env.DIRECT_DEPOSIT_UNLIMITED__P2P_ORG_UNLIMITED_ETH_DEPOSITOR__CONTRACT_ADDRESS],
+    callSighash: [unlimitedETHDepositor.functions.addEth.sighash],
     range: {
       from: env.DIRECT_DEPOSIT_UNLIMITED__P2P_ORG_UNLIMITED_ETH_DEPOSITOR__START_BLOCK,
     },
+    transaction: true,
   })
   // Direct deposits - legacy
-  .addTransaction({
-    to: [env.DIRECT_DEPOSIT__P2P_ETH_DEPOSITOR__CONTRACT_ADDRESS],
-    sighash: [ethDepositor.functions.deposit.sighash],
+  .addTrace({
+    callTo: [env.DIRECT_DEPOSIT__P2P_ETH_DEPOSITOR__CONTRACT_ADDRESS],
+    callSighash: [ethDepositor.functions.deposit.sighash],
     range: {
       from: env.DIRECT_DEPOSIT__P2P_ETH_DEPOSITOR__START_BLOCK,
     },
+    transaction: true,
   })
   // SSV deposits - unlimited
-  .addTransaction({
-    to: [env.SSV_DEPOSIT_UNLIMITED__P2P_SSV_PROXY_FACTORY__CONTRACT_ADDRESS],
-    sighash: [ssvUnlimitedProxyFactory.functions.addEth.sighash],
+  .addTrace({
+    callTo: [env.SSV_DEPOSIT_UNLIMITED__P2P_SSV_PROXY_FACTORY__CONTRACT_ADDRESS],
+    callSighash: [ssvUnlimitedProxyFactory.functions.addEth.sighash],
     range: {
       from: env.SSV_DEPOSIT_UNLIMITED__P2P_SSV_PROXY_FACTORY__START_BLOCK,
     },
+    transaction: true,
   })
   // SSV deposits - legacy
-  .addTransaction({
-    to: [env.SSV_DEPOSIT__P2P_SSV_PROXY_FACTORY__CONTRACT_ADDRESS],
-    sighash: [ssvProxyFactory.functions.depositEthAndRegisterValidators.sighash],
+  .addTrace({
+    callTo: [env.SSV_DEPOSIT__P2P_SSV_PROXY_FACTORY__CONTRACT_ADDRESS],
+    callSighash: [ssvProxyFactory.functions.depositEthAndRegisterValidators.sighash],
     range: {
       from: env.SSV_DEPOSIT__P2P_SSV_PROXY_FACTORY__START_BLOCK,
     },
+    transaction: true,
   })
   // Direct withdrawals
-  .addTransaction({
-    to: [env.DIRECT_WITHDRAW__P2P_MESSAGE_SENDER__CONTRACT_ADDRESS],
-    sighash: [messageSender.functions.send.sighash],
+  .addTrace({
+    callTo: [env.DIRECT_WITHDRAW__P2P_MESSAGE_SENDER__CONTRACT_ADDRESS],
+    callSighash: [messageSender.functions.send.sighash],
     range: {
       from: env.DIRECT_WITHDRAW__P2P_MESSAGE_SENDER__START_BLOCK,
     },
+    transaction: true,
   })
   // SSV withdrawals
-  .addTransaction({
-    to: [env.SSV_WITHDRAWAL__SSV_NETWORK__CONTRACT_ADDRESS],
-    sighash: [ssvNetwork.functions.bulkExitValidator.sighash],
+  .addTrace({
+    callTo: [env.SSV_WITHDRAWAL__SSV_NETWORK__CONTRACT_ADDRESS],
+    callSighash: [ssvNetwork.functions.bulkExitValidator.sighash],
     range: {
       from: env.SSV_WITHDRAWAL__SSV_NETWORK__START_BLOCK,
     },
+    transaction: true,
   });
 
 const db = new TypeormDatabase({
@@ -129,25 +146,47 @@ const db = new TypeormDatabase({
 });
 
 processor.run(db, async (ctx) => {
-  let transactions: Transaction[] = [];
+  const historyEntries: Map<string, HistoryEntry> = new Map();
+  const traces: Trace[] = [];
 
   for (const block of ctx.blocks) {
-    for (const transaction of block.transactions) {
-      transactions.push(
-        new Transaction({
-          id: transaction.id,
-          blockNumber: BigInt(block.header.height),
-          blockHash: block.header.hash,
-          blockTimestamp: BigInt(block.header.timestamp),
-          hash: transaction.hash,
-          from: transaction.from,
-          to: transaction.to,
-          input: transaction.input,
-          value: transaction.value,
-        }),
-      );
+    for (const trace of block.traces) {
+      if (trace.type === "call" && trace.transaction) {
+        let historyEntry = historyEntries.get(trace.transaction.hash);
+
+        if (!historyEntry) {
+          historyEntry = new HistoryEntry({
+            id: trace.transaction.hash,
+            blockNumber: BigInt(block.header.height),
+            blockHash: block.header.hash,
+            blockTimestamp: BigInt(block.header.timestamp),
+            hash: trace.transaction.hash,
+            // For EOAs it is same as transaction.from
+            // For SC accounts it's the underlying wallet address (fe. Safe account address)
+            from: trace.transaction.from,
+            to: trace.transaction.to,
+            input: trace.transaction.input,
+            value: trace.transaction.value,
+            sender: trace.action.from,
+          });
+
+          historyEntries.set(trace.transaction.hash, historyEntry);
+        }
+
+        traces.push(
+          new Trace({
+            id: `${trace.transaction.id}-${block.traces.indexOf(trace)}`,
+            from: trace.action.from,
+            to: trace.action.to,
+            input: trace.action.input,
+            value: trace.action.value,
+            historyEntry,
+          }),
+        );
+      }
     }
   }
 
-  await ctx.store.insert(transactions);
+  await ctx.store.insert(Array.from(historyEntries.values()));
+  await ctx.store.insert(traces);
 });

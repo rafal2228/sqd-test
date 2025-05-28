@@ -1,8 +1,9 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, BigIntColumn as BigIntColumn_} from "@subsquid/typeorm-store"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, BigIntColumn as BigIntColumn_, OneToMany as OneToMany_} from "@subsquid/typeorm-store"
+import {Trace} from "./trace.model"
 
 @Entity_()
-export class Transaction {
-    constructor(props?: Partial<Transaction>) {
+export class HistoryEntry {
+    constructor(props?: Partial<HistoryEntry>) {
         Object.assign(this, props)
     }
 
@@ -26,6 +27,10 @@ export class Transaction {
     @BigIntColumn_({nullable: true})
     value!: bigint | undefined | null
 
+    @Index_()
+    @StringColumn_({nullable: false})
+    sender!: string
+
     @BigIntColumn_({nullable: false})
     blockNumber!: bigint
 
@@ -34,4 +39,7 @@ export class Transaction {
 
     @BigIntColumn_({nullable: false})
     blockTimestamp!: bigint
+
+    @OneToMany_(() => Trace, e => e.historyEntry)
+    traces!: Trace[]
 }
