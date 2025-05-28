@@ -1,31 +1,37 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, BigIntColumn as BigIntColumn_} from "@subsquid/typeorm-store"
 
 @Entity_()
-export class Deposit {
-    constructor(props?: Partial<Deposit>) {
+export class Transaction {
+    constructor(props?: Partial<Transaction>) {
         Object.assign(this, props)
     }
 
     @PrimaryColumn_()
     id!: string
 
-    @Index_()
     @StringColumn_({nullable: false})
-    pubkey!: string
+    hash!: string
 
     @Index_()
     @StringColumn_({nullable: false})
-    withdrawalCredentials!: string
+    from!: string
+
+    @Index_()
+    @StringColumn_({nullable: false})
+    to!: string
+
+    @StringColumn_({nullable: false})
+    input!: string
+
+    @BigIntColumn_({nullable: true})
+    value!: bigint | undefined | null
 
     @BigIntColumn_({nullable: false})
-    amount!: bigint
+    blockNumber!: bigint
 
     @StringColumn_({nullable: false})
-    signature!: string
+    blockHash!: string
 
-    @StringColumn_({nullable: false})
-    index!: string
-
-    @StringColumn_({nullable: true})
-    transactionHash!: string | undefined | null
+    @BigIntColumn_({nullable: false})
+    blockTimestamp!: bigint
 }

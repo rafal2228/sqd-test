@@ -1,1 +1,1 @@
-export * from "./deposit.model"
+export * from "./transaction.model"

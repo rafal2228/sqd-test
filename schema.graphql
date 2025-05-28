@@ -1,9 +1,11 @@
-type Deposit @entity {
+type Transaction @entity {
   id: ID!
-  pubkey: String! @index
-  withdrawalCredentials: String! @index
-  amount: BigInt!
-  signature: String!
-  index: String!
-  transactionHash: String
+  hash: String!
+  from: String! @index
+  to: String! @index
+  input: String!
+  value: BigInt
+  blockNumber: BigInt!
+  blockHash: String!
+  blockTimestamp: BigInt!
 }
