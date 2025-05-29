@@ -18,7 +18,6 @@
   "packageManager": "pnpm@10.6.2",
   "dependencies": {
     "@graphile-contrib/pg-simplify-inflector": "^6.1.0",
-    "@graphile/pg-aggregates": "^0.1.1",
     "@subsquid/evm-abi": "^0.3.1",
     "@subsquid/evm-codec": "^0.3.0",
     "@subsquid/evm-processor": "^1.27.1",

@@ -11,9 +11,6 @@ importers:
       '@graphile-contrib/pg-simplify-inflector':
         specifier: ^6.1.0
         version: 6.1.0
-      '@graphile/pg-aggregates':
-        specifier: ^0.1.1
-        version: 0.1.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.16.0))(graphile-build@4.14.1(graphql@15.10.1))(graphql@15.10.1)
       '@subsquid/evm-abi':
         specifier: ^0.3.1
         version: 0.3.1
@@ -149,13 +146,6 @@ packages:
   '@graphile/lru@4.11.0':
     resolution: {integrity: sha512-Fakuk190EAKxWSa9YQyr/87g8mvAv8HBvk6yPCPuIoA3bYXF7n6kl0XSqKjSd5VfjEqhtnzQ6zJGzDf1Gv/tJg==}
     engines: {node: '>=8.6'}
-
-  '@graphile/pg-aggregates@0.1.1':
-    resolution: {integrity: sha512-bPfniRw4oN9nNP8tkRlbBslNMA38fhVWNhhaReODhPVEshwquzUmSmSCtSVhS4J+StEFgrP7Z+z1IN0/ror2XA==}
-    peerDependencies:
-      graphile-build: ^4.12.0-alpha.0
-      graphile-build-pg: ^4.12.0-alpha.0
-      graphql: '>0.6.0 <16'
 
   '@graphql-tools/merge@8.3.1':
     resolution: {integrity: sha512-BMm99mqdNZbEYeTPK3it9r9S6rsZsQKtlqJsSBknAclXq2pGEfOxjcIZi+kBSkHZKPKCRrYDd5vY0+rUmIHVLg==}
@@ -447,9 +437,6 @@ packages:
   '@types/cors@2.8.12':
     resolution: {integrity: sha512-vt+kDhq/M2ayberEtJcIN/hxXy1Pk+59g2FV/ZQceeaTyCtCucjL2Q7FXlFjtWn4n15KCr1NE2lNNFhp0lEThw==}
 
-  '@types/debug@4.1.12':
-    resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
-
   '@types/express-serve-static-core@4.17.31':
     resolution: {integrity: sha512-DxMhY+NAsTwMMFHBTtJFNp5qiHKJ7TeqOo23zVEM9alT1Ml27Q3xcTH0xwxn7Q0BbMcVEJOs/7aQtUWupUQN3Q==}
 
@@ -461,10 +448,6 @@ packages:
 
   '@types/express@5.0.2':
     resolution: {integrity: sha512-BtjL3ZwbCQriyb0DGw+Rt12qAXPiBTPs815lsUvtt1Grk0vLRMZNMUZ741d5rjk+UQOxfDiBZ3dxpX00vSkK3g==}
-
-  '@types/graphql@14.5.0':
-    resolution: {integrity: sha512-MOkzsEp1Jk5bXuAsHsUi6BVv0zCO+7/2PTiZMXWDSsMXvNU6w/PLMQT2vHn8hy2i0JqojPz1Sz6rsFjHtsU0lA==}
-    deprecated: This is a stub types definition. graphql provides its own type definitions, so you do not need this installed.
 
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
@@ -2026,18 +2009,6 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@graphile/pg-aggregates@0.1.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.16.0))(graphile-build@4.14.1(graphql@15.10.1))(graphql@15.10.1)':
-    dependencies:
-      '@types/debug': 4.1.12
-      '@types/graphql': 14.5.0
-      debug: 4.4.1
-      graphile-build: 4.14.1(graphql@15.10.1)
-      graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.16.0)
-      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.16.0))(graphile-build@4.14.1(graphql@15.10.1))
-      graphql: 15.10.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@graphql-tools/merge@8.3.1(graphql@15.10.1)':
     dependencies:
       '@graphql-tools/utils': 8.9.0(graphql@15.10.1)
@@ -2469,10 +2440,6 @@ snapshots:
 
   '@types/cors@2.8.12': {}
 
-  '@types/debug@4.1.12':
-    dependencies:
-      '@types/ms': 2.1.0
-
   '@types/express-serve-static-core@4.17.31':
     dependencies:
       '@types/node': 22.15.23
@@ -2498,10 +2465,6 @@ snapshots:
       '@types/body-parser': 1.19.2
       '@types/express-serve-static-core': 5.0.6
       '@types/serve-static': 1.15.7
-
-  '@types/graphql@14.5.0':
-    dependencies:
-      graphql: 15.10.1
 
   '@types/http-errors@2.0.4': {}
 
