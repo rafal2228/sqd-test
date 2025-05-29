@@ -14,7 +14,6 @@ type HistoryEntry @entity {
   to: String! @index
   input: String!
   value: BigInt
-  sender: String! @index
   blockNumber: BigInt!
   blockHash: String!
   blockTimestamp: BigInt!

@@ -15,6 +15,7 @@ const startBlockSchema = z.coerce.number().int();
 
 const env = z
   .object({
+    GATEWAY_HTTP: z.string().url(),
     RPC_ETH_HTTP: z.string().url(),
     BEACON_DEPOSIT__CONTRACT_ADDRESS: ethAddressSchema,
     BEACON_DEPOSIT__START_BLOCK: startBlockSchema,
@@ -38,7 +39,7 @@ const env = z
   .parse(process.env);
 
 const processor = new EvmBatchProcessor()
-  .setGateway("https://v2.archive.subsquid.io/network/ethereum-mainnet")
+  .setGateway(env.GATEWAY_HTTP)
   .setRpcEndpoint({
     url: env.RPC_ETH_HTTP,
     rateLimit: 10,
@@ -151,31 +152,31 @@ processor.run(db, async (ctx) => {
 
   for (const block of ctx.blocks) {
     for (const trace of block.traces) {
-      if (trace.type === "call" && trace.transaction) {
-        let historyEntry = historyEntries.get(trace.transaction.hash);
+      const transaction = trace.transaction;
+      const shouldProcess = trace.type === "call" && !!transaction;
+
+      if (shouldProcess) {
+        let historyEntry = historyEntries.get(transaction.hash);
 
         if (!historyEntry) {
           historyEntry = new HistoryEntry({
-            id: trace.transaction.hash,
+            id: transaction.hash,
             blockNumber: BigInt(block.header.height),
             blockHash: block.header.hash,
             blockTimestamp: BigInt(block.header.timestamp),
-            hash: trace.transaction.hash,
-            // For EOAs it is same as transaction.from
-            // For SC accounts it's the underlying wallet address (fe. Safe account address)
-            from: trace.transaction.from,
-            to: trace.transaction.to,
-            input: trace.transaction.input,
-            value: trace.transaction.value,
-            sender: trace.action.from,
+            hash: transaction.hash,
+            from: transaction.from,
+            to: transaction.to,
+            input: transaction.input,
+            value: transaction.value,
           });
 
-          historyEntries.set(trace.transaction.hash, historyEntry);
+          historyEntries.set(transaction.hash, historyEntry);
         }
 
         traces.push(
           new Trace({
-            id: `${trace.transaction.id}-${block.traces.indexOf(trace)}`,
+            id: `${transaction.id}-${block.traces.indexOf(trace)}`,
             from: trace.action.from,
             to: trace.action.to,
             input: trace.action.input,

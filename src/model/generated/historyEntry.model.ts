@@ -27,10 +27,6 @@ export class HistoryEntry {
     @BigIntColumn_({nullable: true})
     value!: bigint | undefined | null
 
-    @Index_()
-    @StringColumn_({nullable: false})
-    sender!: string
-
     @BigIntColumn_({nullable: false})
     blockNumber!: bigint
 
